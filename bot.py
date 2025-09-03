@@ -1,21 +1,19 @@
 import requests
 import datetime
 import os
-import tweepy
 from dotenv import load_dotenv
+import tweepy
 
 # Load environment variables
 load_dotenv()
 
+# AI Agent
 AI_API_URL = "https://ai-agents-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/generate_ai_response"
 AI_USER_NAME = os.getenv("AI_USER_NAME", "Kumar")
 AI_USER_EMAIL = os.getenv("AI_USER_EMAIL", "kumar@example.com")
 
-# Twitter API credentials
-TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
-TWITTER_API_SECRET_KEY = os.getenv("TWITTER_API_SECRET_KEY")
-TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
-TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
+# Twitter API v2
+TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
 
 def generate_drop():
     today = datetime.date.today().strftime("%B %d, %Y")
@@ -48,20 +46,14 @@ Return output with clear headings, emojis, and short bullet lists. Keep it conci
         content = response.json()
         newsletter_text = content.get("response", "")
         print("✅ College Knowledge Drop generated:\n")
-        print(newsletter_text[:500] + "...\n")  # print first 500 chars
+        print(newsletter_text[:500] + "...\n")  # first 500 chars for preview
 
-        # Post to Twitter/X
-        auth = tweepy.OAuth1UserHandler(
-            TWITTER_API_KEY,
-            TWITTER_API_SECRET_KEY,
-            TWITTER_ACCESS_TOKEN,
-            TWITTER_ACCESS_TOKEN_SECRET
-        )
-        api = tweepy.API(auth)
+        # Post to Twitter/X v2
+        client = tweepy.Client(bearer_token=TWITTER_BEARER_TOKEN)
 
-        # Post first 280 characters (for now)
-        text_to_post = newsletter_text[:280]
-        api.update_status(status=text_to_post)
+        # Twitter v2 can only post one tweet at a time
+        tweet_text = newsletter_text[:280]  # simple approach for first tweet
+        client.create_tweet(text=tweet_text)
         print("✅ Posted to Twitter/X successfully!")
 
     except requests.exceptions.RequestException as e:
