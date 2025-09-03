@@ -2,59 +2,35 @@ name: Run College Drop Bot
 
 on:
   schedule:
-    - cron: "0 15 * * *"  # runs daily at 11 AM EST (15:00 UTC)
-  workflow_dispatch:      # allows manual trigger
+    - cron: "0 15 * * *"  # daily at 11 AM EST
+  workflow_dispatch:      # allow manual trigger
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
+
       - name: Install dependencies
         run: pip install requests
-      - name: Run bot
+
+      - name: Run bot and save output
         env:
           AI_USER_NAME: ${{ secrets.AI_USER_NAME }}
           AI_USER_EMAIL: ${{ secrets.AI_USER_EMAIL }}
         run: |
-          python - <<EOF
-          import requests, os, datetime
-          
-          AI_API_URL = "https://ai-agents-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/generate_ai_response"
-          AI_USER_NAME = os.getenv("AI_USER_NAME", "Kumar")
-          AI_USER_EMAIL = os.getenv("AI_USER_EMAIL", "kumar@example.com")
-          
-          today = datetime.date.today().strftime("%B %d, %Y")
-          subject = "Biology"
-          
-          prompt = f'''
-          You are an expert college admissions coach. Produce one "College Knowledge Drop" newsletter for {today}.
-          Structure exactly as:
-          1) Admissions Tip of the Day — one practical high-impact tip with 2-3 bullet action steps and a short example of a student who used it.
-          2) Scholarship/Opportunity Spotlight — choose one active opportunity (scholarship, program, or internship). Give name, 1-line description, eligibility, deadline (exact date if known or state 'TBD'), application link, and 2-sentence pitch why it matters.
-          3) Academic Mini-Lesson — 150-200 words on a college-level concept. The subject for today is {subject}. Write simply, include one short example or analogy and a 1-question practice prompt.
-          4) Essay Inspiration Prompt — a unique prompt and 3 reflection questions.
-          5) Mindset & Motivation Quote — include quote and one-sentence application.
+          python bot.py
 
-          Return output with clear headings, emojis, and short bullet lists. Keep it concise, suitable for conversion into a Twitter thread, Instagram carousel slides, and a short TikTok script.
-          '''
-          
-          payload = {
-              "prompt": prompt,
-              "user_name": AI_USER_NAME,
-              "user_email": AI_USER_EMAIL
-          }
-          
-          headers = {"accept": "application/json", "Content-Type": "application/json"}
-          response = requests.post(AI_API_URL, headers=headers, json=payload)
-          if response.status_code == 200:
-              print("✅ College Knowledge Drop:")
-              print(response.json())
-          else:
-              print("❌ Error:", response.status_code, response.text)
-          EOF
-
+      - name: Commit and push newsletter
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add newsletter_*.txt
+          git commit -m "Add College Knowledge Drop for $(date +'%B_%d_%Y')" || echo "No changes to commit"
+          git push
