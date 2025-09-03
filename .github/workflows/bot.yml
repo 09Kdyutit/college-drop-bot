@@ -27,10 +27,16 @@ jobs:
         run: |
           python bot.py
 
-      - name: Commit and push newsletter
+           - name: Commit and push newsletter
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add newsletter_*.txt
-          git commit -m "Add College Knowledge Drop for $(date +'%B_%d_%Y')" || echo "No changes to commit"
-          git push
+          # Only commit if newsletter file exists
+          if ls newsletter_*.txt 1> /dev/null 2>&1; then
+            git add newsletter_*.txt
+            git commit -m "Add College Knowledge Drop for $(date +'%B_%d_%Y')" || echo "No changes to commit"
+            git push
+          else
+            echo "No newsletter files to commit."
+          fi
+
