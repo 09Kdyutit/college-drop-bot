@@ -2,13 +2,16 @@ import requests
 import datetime
 import os
 
+# AI Agents API endpoint
 AI_API_URL = "https://ai-agents-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/generate_ai_response"
+
+# Environment variables for user info
 AI_USER_NAME = os.getenv("AI_USER_NAME", "Kumar")
 AI_USER_EMAIL = os.getenv("AI_USER_EMAIL", "kumar@example.com")
 
 def generate_drop():
-    today = datetime.date.today().strftime("%B_%d_%Y")
-    subject = "Biology"
+    today = datetime.date.today().strftime("%B %d, %Y")
+    subject = "Biology"  # You can rotate subjects manually or add rotation logic
 
     prompt = f"""
 You are an expert college admissions coach. Produce one "College Knowledge Drop" newsletter for {today}.
@@ -34,10 +37,8 @@ Return output with clear headings, emojis, and short bullet lists. Keep it conci
         response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
         content = response.json()
-        filename = f"newsletter_{today}.txt"
-        with open(filename, "w") as f:
-            f.write(str(content))
-        print(f"✅ College Knowledge Drop saved to {filename}")
+        print("✅ College Knowledge Drop:")
+        print(content)
     except requests.exceptions.RequestException as e:
         print("❌ Failed to fetch newsletter:", e)
 
