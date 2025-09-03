@@ -2,17 +2,20 @@ import requests
 import datetime
 import os
 import tweepy
+from dotenv import load_dotenv
 
-# Load secrets from environment
+# Load environment variables
+load_dotenv()
+
 AI_API_URL = "https://ai-agents-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/generate_ai_response"
 AI_USER_NAME = os.getenv("AI_USER_NAME", "Kumar")
 AI_USER_EMAIL = os.getenv("AI_USER_EMAIL", "kumar@example.com")
 
 # Twitter API credentials
-TWITTER_API_KEY = os.getenv("KxonKyKbxBl1hBDEAisWGeiTS")
-TWITTER_API_SECRET_KEY = os.getenv("8wrjDEZHeMJU8duOBu02Le5ujMbxfjmWhVX9ituMbaXE63rgmp")
-TWITTER_ACCESS_TOKEN = os.getenv("1963029637623382017-QY5bSmLQIRuLeF0i17hX0tjhh0qkGb")
-TWITTER_ACCESS_TOKEN_SECRET = os.getenv("oy4eiHTWnUStkyzzKPybhr6OQd8LK2rzLURVi0va0dwya")
+TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
+TWITTER_API_SECRET_KEY = os.getenv("TWITTER_API_SECRET_KEY")
+TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
+TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 
 def generate_drop():
     today = datetime.date.today().strftime("%B %d, %Y")
@@ -39,27 +42,31 @@ Return output with clear headings, emojis, and short bullet lists. Keep it conci
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     try:
+        # Generate newsletter
         response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
         content = response.json()
-        print("✅ College Knowledge Drop generated:")
-        print(content)
+        newsletter_text = content.get("response", "")
+        print("✅ College Knowledge Drop generated:\n")
+        print(newsletter_text[:500] + "...\n")  # print first 500 chars
 
         # Post to Twitter/X
         auth = tweepy.OAuth1UserHandler(
-            TWITTER_API_KEY, TWITTER_API_SECRET_KEY,
-            TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET
+            TWITTER_API_KEY,
+            TWITTER_API_SECRET_KEY,
+            TWITTER_ACCESS_TOKEN,
+            TWITTER_ACCESS_TOKEN_SECRET
         )
         api = tweepy.API(auth)
 
-        # For simplicity, post the first 280 chars (or split into multiple tweets if needed)
-        text_to_post = str(content)[:280]
+        # Post first 280 characters (for now)
+        text_to_post = newsletter_text[:280]
         api.update_status(status=text_to_post)
         print("✅ Posted to Twitter/X successfully!")
 
     except requests.exceptions.RequestException as e:
         print("❌ Failed to fetch newsletter:", e)
-    except tweepy.TweepError as e:
+    except tweepy.TweepyException as e:
         print("❌ Twitter posting failed:", e)
 
 if __name__ == "__main__":
