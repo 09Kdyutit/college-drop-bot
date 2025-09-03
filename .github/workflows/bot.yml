@@ -3,7 +3,7 @@ name: Run College Drop Bot
 on:
   schedule:
     - cron: "0 15 * * *"  # daily at 11 AM EST
-  workflow_dispatch:      # allow manual trigger
+  workflow_dispatch:      # allows manual trigger
 
 jobs:
   run-bot:
@@ -20,14 +20,14 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Run bot and save output
+      - name: Run bot
         env:
           AI_USER_NAME: ${{ secrets.AI_USER_NAME }}
           AI_USER_EMAIL: ${{ secrets.AI_USER_EMAIL }}
         run: |
           python bot.py
 
-           - name: Commit and push newsletter
+      - name: Commit and push newsletter
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
