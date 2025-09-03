@@ -2,12 +2,13 @@ name: Run College Drop Bot
 
 on:
   schedule:
-    - cron: "0 15 * * *"  # runs daily at 11 AM EST
-  workflow_dispatch:      # allows manual trigger
+    - cron: "0 15 * * *"  # Daily at 11 AM EST
+  workflow_dispatch:      # Allows manual trigger
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -20,23 +21,9 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Run bot
+      - name: Run College Knowledge Drop bot
         env:
           AI_USER_NAME: ${{ secrets.AI_USER_NAME }}
           AI_USER_EMAIL: ${{ secrets.AI_USER_EMAIL }}
         run: |
-          # Remove old newsletter files to avoid conflicts
-          rm -f newsletter_*.txt
           python bot.py
-
-      - name: Commit and push newsletter
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          # Commit only if newsletter file exists
-          if ls newsletter_*.txt 1> /dev/null 2>&1; then
-            git add newsletter_*.txt
-            git commit -m "Add College Knowledge Drop for $(date +'%B_%d_%Y')" || echo "No changes to commit"
-            git push
-          else
-            echo "No newsletter files to commit."
