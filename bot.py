@@ -8,7 +8,7 @@ AI_USER_EMAIL = os.getenv("AI_USER_EMAIL", "kumar@example.com")
 
 def generate_drop():
     today = datetime.date.today().strftime("%B_%d_%Y")
-    subject = "Biology"  # you can rotate manually or add logic for rotation
+    subject = "Biology"
 
     prompt = f"""
 You are an expert college admissions coach. Produce one "College Knowledge Drop" newsletter for {today}.
@@ -30,17 +30,16 @@ Return output with clear headings, emojis, and short bullet lists. Keep it conci
 
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
-    response = requests.post(AI_API_URL, headers=headers, json=payload)
-
-    if response.status_code == 200:
+    try:
+        response = requests.post(AI_API_URL, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
         content = response.json()
         filename = f"newsletter_{today}.txt"
         with open(filename, "w") as f:
             f.write(str(content))
         print(f"✅ College Knowledge Drop saved to {filename}")
-    else:
-        print("❌ Error:", response.status_code, response.text)
-
+    except requests.exceptions.RequestException as e:
+        print("❌ Failed to fetch newsletter:", e)
 
 if __name__ == "__main__":
     generate_drop()
